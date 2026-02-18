@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>歩澄ちゃん あんよバタバタカウンター</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero">
+        <p class="tag">👶 すくすく記録</p>
+        <h1>歩澄ちゃん あんよバタバタカウンター</h1>
+        <p class="subtitle">足をバタバタした回数を、かわいい動物ランクで楽しく見える化 🐾</p>
+      </header>
+
+      <section class="card counter-card" aria-live="polite">
+        <div class="count-wrap">
+          <p class="label">いまの回数</p>
+          <p id="count" class="count">0</p>
+          <p class="unit">回</p>
+        </div>
+        <div class="actions">
+          <button id="incrementBtn" class="btn btn-primary">+ 1 回ふえた！</button>
+          <button id="decrementBtn" class="btn btn-soft">- 1 回へらす</button>
+          <button id="resetBtn" class="btn btn-ghost">リセット</button>
+        </div>
+      </section>
+
+      <section class="card rank-card" aria-live="polite">
+        <h2>現在のランク</h2>
+        <p id="animalEmoji" class="animal-emoji" role="img" aria-label="ランク動物">🥚</p>
+        <p id="rankName" class="rank-name">たまごランク</p>
+        <p id="rankMessage" class="rank-message">はじめの一歩を待ってるよ！</p>
+      </section>
+
+      <section class="card list-card">
+        <h2>どうぶつランク一覧</h2>
+        <ol id="rankList" class="rank-list"></ol>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
