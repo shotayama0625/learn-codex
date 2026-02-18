@@ -1,0 +1,166 @@
+:root {
+  --bg: #fff8fc;
+  --pink: #ff7eb6;
+  --pink-strong: #ff4f9a;
+  --mint: #9ce6cf;
+  --lavender: #c9b8ff;
+  --ink: #4a3f57;
+  --card: #ffffff;
+  --shadow: 0 10px 30px rgba(255, 126, 182, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 10% 10%, #ffe5f3 0, transparent 30%),
+    radial-gradient(circle at 90% 20%, #e4fdf4 0, transparent 32%),
+    var(--bg);
+  min-height: 100vh;
+}
+
+.app {
+  width: min(860px, 92vw);
+  margin: 2rem auto 3rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.hero {
+  text-align: center;
+  padding: 1.4rem 1rem;
+}
+
+.tag {
+  margin: 0;
+  display: inline-block;
+  background: #ffe7f3;
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+h1 {
+  margin: 0.8rem 0 0.5rem;
+  font-size: clamp(1.4rem, 2.8vw, 2rem);
+}
+
+.subtitle {
+  margin: 0;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 1.2rem;
+}
+
+.counter-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.count-wrap {
+  text-align: center;
+}
+
+.label {
+  margin: 0;
+  font-weight: 600;
+}
+
+.count {
+  font-size: clamp(3rem, 8vw, 4.5rem);
+  margin: 0.1rem 0;
+  color: var(--pink-strong);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.unit {
+  margin: 0;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.btn {
+  border: none;
+  border-radius: 14px;
+  padding: 0.8rem 0.6rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+}
+
+.btn-primary {
+  background: var(--pink);
+  color: white;
+  font-weight: 700;
+}
+
+.btn-soft {
+  background: #ffe7b2;
+  color: #6b4b00;
+}
+
+.btn-ghost {
+  background: #ece7ff;
+  color: #4f3f8a;
+}
+
+.rank-card {
+  text-align: center;
+}
+
+.rank-card h2,
+.list-card h2 {
+  margin-top: 0;
+}
+
+.animal-emoji {
+  font-size: 4rem;
+  margin: 0.2rem 0;
+}
+
+.rank-name {
+  font-size: 1.6rem;
+  margin: 0;
+  color: #5e4fb1;
+  font-weight: 700;
+}
+
+.rank-message {
+  margin: 0.4rem 0 0;
+}
+
+.rank-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.rank-list li {
+  line-height: 1.5;
+}
+
+@media (max-width: 620px) {
+  .actions {
+    grid-template-columns: 1fr;
+  }
+}
