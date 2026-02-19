@@ -1,4 +1,6 @@
-const STORAGE_KEY = "registeredDishes";
+const STORAGE_KEY = "registeredDishes.v1";
+const LEGACY_STORAGE_KEY = "registeredDishes";
+const AUTO_API_KEY_FILE = "api-key.example.env";
 
 const apiKeyInput = document.getElementById("apiKey");
 const ingredientsInput = document.getElementById("ingredients");
@@ -13,20 +15,37 @@ const suggestionsEl = document.getElementById("suggestions");
 const registeredListEl = document.getElementById("registeredList");
 
 let registeredDishes = loadRegisteredDishes();
+let cachedAutoApiKey = "";
 
 function loadRegisteredDishes() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+
+    if (Array.isArray(parsed?.items)) {
+      return parsed.items;
+    }
+
+    return [];
   } catch {
     return [];
   }
 }
 
 function saveRegisteredDishes() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(registeredDishes));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      items: registeredDishes
+    })
+  );
 }
 
 function setStatus(message) {
@@ -34,7 +53,16 @@ function setStatus(message) {
 }
 
 function normalizeName(name) {
-  return name.replace(/\s+/g, "").toLowerCase();
+  return name
+    .toLowerCase()
+    .replace(/[\s・･、,。.!！?？\-ー_（）()「」『』\[\]【】]/g, "");
+}
+
+function splitIngredients(text) {
+  return text
+    .split(/[\s,、，\n]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function renderRegisteredDishes() {
@@ -139,13 +167,37 @@ async function readApiKeyFromFile() {
   return extractApiKeyFromFileContent(content);
 }
 
+async function readApiKeyFromProjectFile() {
+  if (cachedAutoApiKey) {
+    return cachedAutoApiKey;
+  }
+
+  const response = await fetch(AUTO_API_KEY_FILE, {
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error(`${AUTO_API_KEY_FILE} の読み込みに失敗しました: ${response.status}`);
+  }
+
+  const content = await response.text();
+  const apiKey = extractApiKeyFromFileContent(content);
+  cachedAutoApiKey = apiKey;
+  return apiKey;
+}
+
 async function resolveApiKey() {
   const directInput = apiKeyInput.value.trim();
   if (directInput) {
     return directInput;
   }
 
-  return readApiKeyFromFile();
+  const uploadedKey = await readApiKeyFromFile();
+  if (uploadedKey) {
+    return uploadedKey;
+  }
+
+  return readApiKeyFromProjectFile();
 }
 
 async function callOpenAI(apiKey, prompt) {
@@ -187,15 +239,63 @@ function extractJson(text) {
   return JSON.parse(text.slice(start, end + 1));
 }
 
-function prioritizeRegistered(suggestions) {
-  const registeredNames = new Set(registeredDishes.map((dish) => normalizeName(dish.name)));
+function isRegisteredSuggestion(item, registeredNameSet) {
+  const normalizedSuggestion = normalizeName(item.name || "");
+  if (!normalizedSuggestion) {
+    return false;
+  }
 
-  return suggestions
+  if (registeredNameSet.has(normalizedSuggestion)) {
+    return true;
+  }
+
+  return [...registeredNameSet].some(
+    (normalizedDishName) =>
+      normalizedSuggestion.includes(normalizedDishName) ||
+      normalizedDishName.includes(normalizedSuggestion)
+  );
+}
+
+function prioritizeRegistered(suggestions, ingredientText) {
+  const registeredNameSet = new Set(registeredDishes.map((dish) => normalizeName(dish.name)));
+  const normalizedSuggestionNameSet = new Set(
+    suggestions.map((item) => normalizeName(item.name || "")).filter(Boolean)
+  );
+
+  const inputIngredients = new Set(splitIngredients(ingredientText).map((item) => normalizeName(item)));
+
+  const registeredMatches = registeredDishes
+    .map((dish) => {
+      const overlapCount = dish.ingredients.reduce((count, ingredient) => {
+        return count + Number(inputIngredients.has(normalizeName(ingredient)));
+      }, 0);
+
+      return {
+        dish,
+        overlapCount
+      };
+    })
+    .filter((item) => item.overlapCount > 0)
+    .sort((a, b) => b.overlapCount - a.overlapCount)
+    .map((item) => ({
+      name: item.dish.name,
+      genre: "登録料理",
+      difficulty: "登録済み",
+      reason: `入力食材と${item.overlapCount}件一致した登録済み料理です。`,
+      isRegistered: true,
+      score: 1000 + item.overlapCount
+    }))
+    .filter((item) => !normalizedSuggestionNameSet.has(normalizeName(item.name)));
+
+  const prioritizedSuggestions = suggestions
     .map((item) => ({
       ...item,
-      isRegistered: registeredNames.has(normalizeName(item.name))
+      isRegistered: isRegisteredSuggestion(item, registeredNameSet),
+      score: isRegisteredSuggestion(item, registeredNameSet) ? 500 : 0
     }))
-    .sort((a, b) => Number(b.isRegistered) - Number(a.isRegistered));
+    .sort((a, b) => b.score - a.score);
+
+  return [...registeredMatches, ...prioritizedSuggestions];
 }
 
 suggestBtn.addEventListener("click", async () => {
@@ -215,7 +315,7 @@ suggestBtn.addEventListener("click", async () => {
   }
 
   if (!apiKey) {
-    setStatus("APIキー（直接入力またはファイル指定）が必要です。");
+    setStatus("APIキーが取得できません。api-key.example.env を確認してください。");
     return;
   }
 
@@ -237,7 +337,7 @@ suggestBtn.addEventListener("click", async () => {
   try {
     const text = await callOpenAI(apiKey, prompt);
     const parsed = extractJson(text);
-    const prioritized = prioritizeRegistered(parsed);
+    const prioritized = prioritizeRegistered(parsed, ingredients);
     renderSuggestions(prioritized);
     setStatus("提案を更新しました。");
   } catch (error) {
@@ -257,7 +357,7 @@ registerBtn.addEventListener("click", async () => {
   }
 
   if (!apiKey || !dishName) {
-    setStatus("登録には APIキー（直接入力またはファイル指定）と料理名が必要です。");
+    setStatus("登録には APIキー（api-key.example.env または入力値）と料理名が必要です。");
     return;
   }
 
