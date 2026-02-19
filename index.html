@@ -3,40 +3,71 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>歩澄ちゃん あんよバタバタカウンター</title>
+    <title>冷蔵庫レシピ提案アシスタント</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="app">
-      <header class="hero">
-        <p class="tag">👶 すくすく記録</p>
-        <h1>歩澄ちゃん あんよバタバタカウンター</h1>
-        <p class="subtitle">足をバタバタした回数を、かわいい動物ランクで楽しく見える化 🐾</p>
+      <header class="hero card">
+        <p class="tag">🍳 OpenAI 活用</p>
+        <h1>冷蔵庫レシピ提案アシスタント</h1>
+        <p class="subtitle">食材・ジャンル・難易度から作れる料理を提案し、作った料理を記録できます。</p>
       </header>
 
-      <section class="card counter-card" aria-live="polite">
-        <div class="count-wrap">
-          <p class="label">いまの回数</p>
-          <p id="count" class="count">0</p>
-          <p class="unit">回</p>
+      <section class="card">
+        <h2>1) 提案条件</h2>
+        <label for="apiKey">OpenAI API Key</label>
+        <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
+        <p class="hint">ブラウザ保存はせず、提案時のみ使用します。</p>
+
+        <label for="ingredients">冷蔵庫の食材（カンマ区切り）</label>
+        <textarea
+          id="ingredients"
+          rows="3"
+          placeholder="例: 鶏むね肉, 玉ねぎ, 卵, キャベツ, 牛乳"
+        ></textarea>
+
+        <div class="filters">
+          <div>
+            <label for="genre">ジャンル</label>
+            <select id="genre">
+              <option value="all">指定なし</option>
+              <option value="和食">和食</option>
+              <option value="洋食">洋食</option>
+              <option value="中華">中華</option>
+            </select>
+          </div>
+          <div>
+            <label for="difficulty">難易度</label>
+            <select id="difficulty">
+              <option value="all">指定なし</option>
+              <option value="かんたん">かんたん</option>
+              <option value="ふつう">ふつう</option>
+              <option value="むずかしい">むずかしい</option>
+            </select>
+          </div>
         </div>
-        <div class="actions">
-          <button id="incrementBtn" class="btn btn-primary">+ 1 回ふえた！</button>
-          <button id="decrementBtn" class="btn btn-soft">- 1 回へらす</button>
-          <button id="resetBtn" class="btn btn-ghost">リセット</button>
-        </div>
+
+        <button id="suggestBtn" class="btn btn-primary">作れる料理を提案する</button>
+        <p id="status" class="status" aria-live="polite"></p>
       </section>
 
-      <section class="card rank-card" aria-live="polite">
-        <h2>現在のランク</h2>
-        <p id="animalEmoji" class="animal-emoji" role="img" aria-label="ランク動物">🥚</p>
-        <p id="rankName" class="rank-name">たまごランク</p>
-        <p id="rankMessage" class="rank-message">はじめの一歩を待ってるよ！</p>
+      <section class="card">
+        <h2>2) 提案結果（登録済み料理を優先表示）</h2>
+        <ul id="suggestions" class="list"></ul>
       </section>
 
-      <section class="card list-card">
-        <h2>どうぶつランク一覧</h2>
-        <ol id="rankList" class="rank-list"></ol>
+      <section class="card">
+        <h2>3) 作った料理を登録</h2>
+        <label for="cookedDish">料理名</label>
+        <input id="cookedDish" type="text" placeholder="例: 親子丼" />
+        <button id="registerBtn" class="btn btn-soft">作った料理を登録する</button>
+        <p class="hint">登録時に OpenAI API で使用食材を推定して保存します。</p>
+      </section>
+
+      <section class="card">
+        <h2>登録済み料理</h2>
+        <ul id="registeredList" class="list"></ul>
       </section>
     </main>
 
