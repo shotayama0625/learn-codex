@@ -2,6 +2,7 @@ const STORAGE_KEY = "registeredDishes";
 
 const apiKeyInput = document.getElementById("apiKey");
 const ingredientsInput = document.getElementById("ingredients");
+const apiKeyFileInput = document.getElementById("apiKeyFile");
 const genreSelect = document.getElementById("genre");
 const difficultySelect = document.getElementById("difficulty");
 const suggestBtn = document.getElementById("suggestBtn");
@@ -78,6 +79,75 @@ function renderSuggestions(items) {
   });
 }
 
+function extractTextFromResponseData(data) {
+  if (typeof data?.output_text === "string" && data.output_text.trim()) {
+    return data.output_text.trim();
+  }
+
+  if (Array.isArray(data?.output)) {
+    const chunks = [];
+
+    data.output.forEach((item) => {
+      if (!Array.isArray(item?.content)) return;
+
+      item.content.forEach((contentItem) => {
+        if (typeof contentItem?.text === "string" && contentItem.text.trim()) {
+          chunks.push(contentItem.text.trim());
+        }
+      });
+    });
+
+    if (chunks.length > 0) {
+      return chunks.join("\n");
+    }
+  }
+
+  return "";
+}
+
+function extractApiKeyFromFileContent(content) {
+  const lines = content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !line.startsWith("#"));
+
+  if (lines.length === 0) {
+    throw new Error("API Key ファイルの内容が空です。");
+  }
+
+  const envLine = lines.find((line) => line.startsWith("OPENAI_API_KEY="));
+  if (envLine) {
+    const value = envLine.slice("OPENAI_API_KEY=".length).trim();
+    const unquoted = value.replace(/^(["'])(.*)\1$/, "$2").trim();
+    if (!unquoted) {
+      throw new Error("OPENAI_API_KEY の値が空です。");
+    }
+    return unquoted;
+  }
+
+  return lines[0];
+}
+
+async function readApiKeyFromFile() {
+  const file = apiKeyFileInput.files?.[0];
+  if (!file) {
+    return "";
+  }
+
+  const content = await file.text();
+  return extractApiKeyFromFileContent(content);
+}
+
+async function resolveApiKey() {
+  const directInput = apiKeyInput.value.trim();
+  if (directInput) {
+    return directInput;
+  }
+
+  return readApiKeyFromFile();
+}
+
 async function callOpenAI(apiKey, prompt) {
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -96,9 +166,11 @@ async function callOpenAI(apiKey, prompt) {
   }
 
   const data = await response.json();
-  const text = data.output_text;
+  const text = extractTextFromResponseData(data);
   if (!text) {
-    throw new Error("OpenAI API の応答テキストが取得できませんでした。");
+    throw new Error(
+      "OpenAI API の応答テキストが取得できませんでした。JSON schema / APIレスポンスを確認してください。"
+    );
   }
 
   return text;
@@ -127,11 +199,23 @@ function prioritizeRegistered(suggestions) {
 }
 
 suggestBtn.addEventListener("click", async () => {
-  const apiKey = apiKeyInput.value.trim();
   const ingredients = ingredientsInput.value.trim();
 
-  if (!apiKey || !ingredients) {
-    setStatus("APIキーと食材は必須です。");
+  if (!ingredients) {
+    setStatus("食材は必須です。");
+    return;
+  }
+
+  let apiKey = "";
+  try {
+    apiKey = await resolveApiKey();
+  } catch (error) {
+    setStatus(`APIキー読み込みに失敗しました: ${error.message}`);
+    return;
+  }
+
+  if (!apiKey) {
+    setStatus("APIキー（直接入力またはファイル指定）が必要です。");
     return;
   }
 
@@ -162,11 +246,18 @@ suggestBtn.addEventListener("click", async () => {
 });
 
 registerBtn.addEventListener("click", async () => {
-  const apiKey = apiKeyInput.value.trim();
   const dishName = cookedDishInput.value.trim();
 
+  let apiKey = "";
+  try {
+    apiKey = await resolveApiKey();
+  } catch (error) {
+    setStatus(`APIキー読み込みに失敗しました: ${error.message}`);
+    return;
+  }
+
   if (!apiKey || !dishName) {
-    setStatus("登録には APIキー と料理名が必要です。");
+    setStatus("登録には APIキー（直接入力またはファイル指定）と料理名が必要です。");
     return;
   }
 
