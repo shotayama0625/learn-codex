@@ -1,6 +1,6 @@
 const STORAGE_KEY = "registeredDishes.v1";
 const LEGACY_STORAGE_KEY = "registeredDishes";
-const AUTO_API_KEY_FILE = "./api-key.example.env";
+const AUTO_API_KEY_FILE = "api-key.example.env";
 
 const ingredientsInput = document.getElementById("ingredients");
 const genreSelect = document.getElementById("genre");
@@ -152,7 +152,13 @@ function extractApiKeyFromFileContent(content) {
     return unquoted;
   }
 
-  return lines[0];
+  const firstLine = lines[0];
+
+  if (!firstLine) {
+    throw new Error("OPENAI_API_KEY の値が空です。");
+  }
+
+  return firstLine;
 }
 
 async function readApiKeyFromProjectFile() {
@@ -160,9 +166,21 @@ async function readApiKeyFromProjectFile() {
     return cachedAutoApiKey;
   }
 
-  const response = await fetch(AUTO_API_KEY_FILE, {
-    cache: "no-store"
-  });
+  const apiKeyUrl = new URL(AUTO_API_KEY_FILE, window.location.href).toString();
+
+  let response;
+  try {
+    response = await fetch(apiKeyUrl, {
+      cache: "no-store"
+    });
+  } catch (error) {
+    if (window.location.protocol === "file:") {
+      throw new Error(
+        "file:// で開くと api-key.example.env を自動取得できません。`python3 -m http.server 8000` などで配信して開いてください。"
+      );
+    }
+    throw error;
+  }
 
   if (!response.ok) {
     throw new Error(`${AUTO_API_KEY_FILE} の読み込みに失敗しました: ${response.status}`);
@@ -170,6 +188,11 @@ async function readApiKeyFromProjectFile() {
 
   const content = await response.text();
   const apiKey = extractApiKeyFromFileContent(content);
+
+  if (apiKey === "sk-your-key-here") {
+    throw new Error("api-key.example.env がサンプル値のままです。実際のAPIキーに置き換えてください。");
+  }
+
   cachedAutoApiKey = apiKey;
   return apiKey;
 }
