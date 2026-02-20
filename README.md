@@ -5,7 +5,7 @@
 ## 対応機能
 
 - 冷蔵庫にある食材から料理提案（OpenAI API 利用）
-- `api-key.example.env` から API Key を自動読み込み（手入力 / ファイル指定で上書き可能）
+- `index.html` と同じパスの `api-key.example.env` から API Key を自動読み込み
 - 和食 / 洋食 / 中華でのジャンル絞り込み
 - かんたん / ふつう / むずかしいでの難易度絞り込み
 - 作った料理の登録（料理名から食材を OpenAI API で推定して保存）
@@ -15,12 +15,12 @@
 ## 使い方
 
 1. `index.html` をブラウザで開きます。
-2. `api-key.example.env` に OpenAI API Key（`OPENAI_API_KEY=...`）を書き、食材を入力します。必要に応じてジャンル・難易度を指定します（手入力やファイル指定で一時的に上書きも可能）。
+2. `index.html` と同じ場所の `api-key.example.env` に OpenAI API Key（`OPENAI_API_KEY=...`）を書き、食材を入力します。必要に応じてジャンル・難易度を指定します。
 3. 「作れる料理を提案する」を押します。
 4. 作った料理は料理名を入力して「作った料理を登録する」で保存します。
 
 > 注意: API キーはブラウザ内でのみ使用し、ローカルストレージには保存しません。
-> `api-key.example.env` は同一ディレクトリに配置し、`OPENAI_API_KEY=...` 形式で記載してください。
+> `api-key.example.env` は `index.html` と同一ディレクトリに配置し、`OPENAI_API_KEY=...` 形式で記載してください。
 
 ## ローカル起動（任意）
 

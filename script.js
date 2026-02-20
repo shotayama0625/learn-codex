@@ -1,10 +1,8 @@
 const STORAGE_KEY = "registeredDishes.v1";
 const LEGACY_STORAGE_KEY = "registeredDishes";
-const AUTO_API_KEY_FILE = "api-key.example.env";
+const AUTO_API_KEY_FILE = "./api-key.example.env";
 
-const apiKeyInput = document.getElementById("apiKey");
 const ingredientsInput = document.getElementById("ingredients");
-const apiKeyFileInput = document.getElementById("apiKeyFile");
 const genreSelect = document.getElementById("genre");
 const difficultySelect = document.getElementById("difficulty");
 const suggestBtn = document.getElementById("suggestBtn");
@@ -157,16 +155,6 @@ function extractApiKeyFromFileContent(content) {
   return lines[0];
 }
 
-async function readApiKeyFromFile() {
-  const file = apiKeyFileInput.files?.[0];
-  if (!file) {
-    return "";
-  }
-
-  const content = await file.text();
-  return extractApiKeyFromFileContent(content);
-}
-
 async function readApiKeyFromProjectFile() {
   if (cachedAutoApiKey) {
     return cachedAutoApiKey;
@@ -187,16 +175,6 @@ async function readApiKeyFromProjectFile() {
 }
 
 async function resolveApiKey() {
-  const directInput = apiKeyInput.value.trim();
-  if (directInput) {
-    return directInput;
-  }
-
-  const uploadedKey = await readApiKeyFromFile();
-  if (uploadedKey) {
-    return uploadedKey;
-  }
-
   return readApiKeyFromProjectFile();
 }
 
@@ -315,7 +293,7 @@ suggestBtn.addEventListener("click", async () => {
   }
 
   if (!apiKey) {
-    setStatus("APIキーが取得できません。api-key.example.env を確認してください。");
+    setStatus("APIキーが取得できません。index.html と同じ場所の api-key.example.env を確認してください。");
     return;
   }
 
@@ -357,7 +335,7 @@ registerBtn.addEventListener("click", async () => {
   }
 
   if (!apiKey || !dishName) {
-    setStatus("登録には APIキー（api-key.example.env または入力値）と料理名が必要です。");
+    setStatus("登録には APIキー（index.html と同じ場所の api-key.example.env）と料理名が必要です。");
     return;
   }
 

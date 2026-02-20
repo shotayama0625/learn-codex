@@ -16,13 +16,9 @@
 
       <section class="card">
         <h2>1) 提案条件</h2>
-        <label for="apiKey">OpenAI API Key</label>
-        <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
-        <label for="apiKeyFile">必要なら API Key ファイルを上書き指定（.txt / .env）</label>
-        <input id="apiKeyFile" type="file" accept=".txt,.env,text/plain" />
         <p class="hint">
-          既定では <code>api-key.example.env</code> から APIキーを自動読み込みします。
-          手入力またはファイル選択時はそちらを優先して使用します。
+          APIキーは <code>index.html</code> と同じ場所の
+          <code>api-key.example.env</code> から自動で読み込みます。
         </p>
 
         <label for="ingredients">冷蔵庫の食材（カンマ区切り）</label>
