@@ -16,13 +16,10 @@
 
       <section class="card">
         <h2>1) 提案条件</h2>
-        <label for="apiKey">OpenAI API Key</label>
-        <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
-        <label for="apiKeyFile">または API Key ファイル（.txt / .env）</label>
-        <input id="apiKeyFile" type="file" accept=".txt,.env,text/plain" />
         <p class="hint">
-          1行目にキーを書いたテキスト、または <code>OPENAI_API_KEY=sk-...</code> 形式を読み込めます。
-          ブラウザ保存はせず、提案時のみ使用します。
+          APIキーは <code>index.html</code> と同じ場所の
+          <code>api-key.example.env</code> から自動で読み込みます。
+          ブラウザで直接ファイルを開かず、ローカルサーバー経由で開いてください。
         </p>
 
         <label for="ingredients">冷蔵庫の食材（カンマ区切り）</label>
